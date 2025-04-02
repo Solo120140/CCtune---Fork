@@ -1,5 +1,5 @@
 local fs = require("filesystem")-- Use the built-in filesystem API
-local downloader = require("downloader")
+-- local downloader = require("downloader")
 
 
 local function printHelp()
