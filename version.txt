@@ -4,4 +4,4 @@ playlistGenerator.lua
 version.txt
 lib/basalt.lua
 lib/Player.lua
-lib/linkBuilders/download.lua
+lib/linkBuilders/downloader.lua
