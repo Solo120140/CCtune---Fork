@@ -53,7 +53,7 @@ if fs.exists("version.txt") then
   vf.close()
   installed = true
   if isUpdateAvailable(currVersion, versionResponse.readLine():match("^@version%s+(.+)")) then
-    print("A new version is available! Installing...")
+    print("A new version is available!\nInstalling...")
   elseif forceUpdate then
     print("Reinstalling")
     installed = true
@@ -66,15 +66,7 @@ else
   print("Installing...")
 end
 
-local files = {}
-
-while true do
-  local line = versionResponse.readLine()
-  if not line then break end
-  if line:match("%S+") then
-    table.insert(files, line)
-  end
-end
+local files = {"play.lua", "playlistGenerator.lua", "lib/downloader.lua"} -- Add downloader.lua
 
 if installed then
   print("Removing old files...")
@@ -88,10 +80,6 @@ end
 if not fs.isDir("lib") then
   print("Creating lib/ directory")
   fs.makeDir("lib")
-  if not fs.isDir("lib/linkBuilders") then
-    print("Creating lib/linkBuilders directory")
-    fs.makeDir("lib/linkBuilders")
-  end
 end
 
 print("Pulling files...")
