@@ -1,30 +1,37 @@
 local player = require("lib.Player")
 local basalt = require("lib.basalt")
-local mainFrame
-local playlist
-local exitButton
-local upButton
-local downButton
-local playlistColor
+local mainFrame = nil
+local playlist = nil
+local exitButton = nil
+local upButton = nil
+local downButton = nil
+local playlistColor = nil
 
 local darkMode = false
 
-local currentSongUrl
-local playThread
+local currentSongUrl = nil
+local playThread = nil
 local songFinished = false
 
 local exit = false
 
-local type, baseUrl, files, shuffle
+local type = nil
+local baseUrl = nil
+local files = nil
+local shuffle = nil
+local branch = nil -- Added for GitHub support
+local filepath = nil -- Added for GitHub support
 
-local selectSong
-local playSong
+local selectSong = nil
+local playSong = nil
 
 ---@alias playlistTypes
----| "Nextcloud"
+---|   "Nextcloud"
 local playlistTypes = {
   Nextcloud = true,
+  github = true, -- Added github support
 }
+
 local function isPlaylistTypeSupported(playlistType)
   return playlistTypes[playlistType] or false
 end
@@ -102,6 +109,15 @@ local function parsePlaylist(file)
   if playlistType == "" or playlistType == nil then error("Wrong playlist format!") end
   if not isPlaylistTypeSupported(playlistType) then error("Playlist type `" .. playlistType .. "` isn't supported!") end
 
+  -- Parse branch and filepath for GitHub playlists
+  if playlistType == "github" then
+    branch = playlistFile.readLine():match("^@branch%s+(.+)")
+    filepath = playlistFile.readLine():match("^@filepath%s+(.+)")
+    if not branch or not filepath then
+      error("GitHub playlist missing @branch or @filepath!")
+    end
+  end
+
   local parsed_files = {}
 
   while true do
@@ -174,8 +190,15 @@ end
 function selectSong(item)
   playThread:stop()
   songFinished = false
-  local linkBuilder = require("lib.linkBuilders." .. type)
-  currentSongUrl = linkBuilder.getUrl(baseUrl, item.text .. ".dfpwm")
+  local downloader = require("lib.downloader") -- Use downloader instead of linkBuilders
+  if type == "nextcloud" then
+    currentSongUrl = downloader:getNextcloudUrl(baseUrl, item.text .. ".dfpwm") -- Nextcloud URL
+  elseif type == "github" then
+    -- Assuming you've stored branch and filepath in global variables
+    currentSongUrl = downloader:getGitHubRawUrl(baseUrl, branch, filepath, item.text .. ".dfpwm") -- GitHub URL
+  else
+    error("Unknown playlist type: " .. type)
+  end
   playlist:setOffset(playlist:getItemIndex() - 2)
   playThread:start(playSong)
   -- player.play(url)
