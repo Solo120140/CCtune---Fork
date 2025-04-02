@@ -1,5 +1,6 @@
-local lfs = require("lfs")
-local downloader = require("downloader") -- Require the new downloader module
+local fs = require("filesystem")-- Use the built-in filesystem API
+local downloader = require("downloader")
+
 
 local function printHelp()
   print("Generate a .cctpl playlist")
@@ -117,16 +118,14 @@ local function getFiles(directory)
   local files = {}
 
   -- Check if the directory exists
-  local attr = lfs.attributes(directory)
-  if not attr or attr.mode ~= "directory" then
+  if not fs.isDir(directory) then  -- Use fs.isDir
     return nil, "Directory does not exist"
   end
 
   -- Iterate through the directory
-  for file in lfs.dir(directory) do
-    if file:match("%.dfpwm$") then
-      table.insert(files, file)
-    end
+  local dirHandle = fs.find(directory .. "/*.dfpwm") -- Use fs.find
+  for name in dirHandle do
+    table.insert(files, name)
   end
 
   return files
@@ -154,7 +153,10 @@ end
 
 local function Main()
   local parsedArgs = parseArgs()
-  local files = getFiles(parsedArgs.directory)
+  local files, err = getFiles(parsedArgs.directory)
+  if not files then
+    error(err)
+  end
   writePlaylist(parsedArgs.targetFile, parsedArgs.type, parsedArgs.baseUrl, files, parsedArgs.branch, parsedArgs.filePath)
 end
 
