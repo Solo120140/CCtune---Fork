@@ -1,6 +1,7 @@
-@version 2.1.1
+@version 3.1.0
 play.lua
+playlistGenerator.lua
 version.txt
 lib/basalt.lua
 lib/Player.lua
-lib/linkBuilders/Nextcloud.lua
+lib/linkBuilders/download.lua
