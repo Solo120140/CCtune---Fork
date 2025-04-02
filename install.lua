@@ -1,6 +1,6 @@
 -- Settings
-local owner = "jiriks74"
-local repo = "ccTune"
+local owner = "solo120140"
+local repo = "CCtune---Fork"
 local baseUrl = "https://raw.githubusercontent.com/" .. owner .. "/" .. repo .. "/refs/heads/main/"
 -- ^Settings
 
