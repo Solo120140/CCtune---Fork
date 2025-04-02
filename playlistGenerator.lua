@@ -1,4 +1,5 @@
 local lfs = require("lfs")
+local downloader = require("downloader") -- Require the new downloader module
 
 local function printHelp()
   print("Generate a .cctpl playlist")
@@ -6,16 +7,19 @@ local function printHelp()
   print("Options:")
   print("  -b, --base-url <url>    Specify the base URL for the playlist.")
   print("  -d, --directory <path>  Specify the directory containing the dfpwm files.")
-  print("  -t, --type <type>       Specify the type of the playlist (e.g., nextcloud).")
+  print("  -t, --type <type>       Specify the type of the playlist (e.g., nextcloud, github).")
+  print("  --branch <branch>     Specify the branch (for github).")
+  print("  --filepath <filepath> Specify the filepath (for github).")
   print("  -h, --help              Show this help message.")
-  print("\nExample:")
-  print(
-    "  lua playlistGenerator.lua -b \"https://nextcloud.example.com/s/MyMinecraftSongs\" -d \"/path/to/files\" -t \"nextcloud\"")
+  print("\nExample (Nextcloud):")
+  print("  lua playlistGenerator.lua myplaylist.cctpl -b \"https://nextcloud.example.com/s/MySongs\" -d \"/path/to/files\" -t \"nextcloud\"")
+  print("\nExample (GitHub):")
+  print("  lua playlistGenerator.lua myplaylist.cctpl -b \"https://github.com/MyUser/MyRepo\" -d \"songs\" -t \"github\" --branch \"main\" --filepath \"music\"")
 end
 
 local function parseArgs()
-  local args = {} -- Table to hold parsed arguments
-  local i = 1     -- Index for the global arg table
+  local args = {}
+  local i = 1
 
   while i <= #arg do
     local key = arg[i]
@@ -41,6 +45,20 @@ local function parseArgs()
       else
         error("Error: Type not provided after " .. key)
       end
+    elseif key == "--branch" then
+      i = i + 1
+      if arg[i] then
+        args.branch = arg[i]
+      else
+        error("Error: Branch not provided after " .. key)
+      end
+    elseif key == "--filepath" then
+      i = i + 1
+      if arg[i] then
+        args.filePath = arg[i]
+      else
+        error("Error: Filepath not provided after " .. key)
+      end
     elseif key == "-h" or key == "--help" then
       printHelp()
       os.exit(0)
@@ -61,9 +79,10 @@ local function parseArgs()
       end
     end
 
-    i = i + 1 -- Move to the next argument
+    i = i + 1
   end
 
+  -- Validation (same as before, but with added checks)
   if not args.baseUrl then
     print("BaseUrl wasn't specified!")
     print()
@@ -84,6 +103,11 @@ local function parseArgs()
     print()
     printHelp()
     os.exit(1)
+  elseif args.type == "github" and (not args.branch or not args.filePath) then
+    print("Branch and filepath must be specified for GitHub!")
+    print()
+    printHelp()
+    os.exit(1)
   end
 
   return args
@@ -100,7 +124,7 @@ local function getFiles(directory)
 
   -- Iterate through the directory
   for file in lfs.dir(directory) do
-    if file:match("%.dfpwm$") then     -- Check for .dfpwm extension
+    if file:match("%.dfpwm$") then
       table.insert(files, file)
     end
   end
@@ -108,28 +132,30 @@ local function getFiles(directory)
   return files
 end
 
-local function writePlaylist(filename, type, baseUrl, files)
-    local file, err = io.open(filename, "w")  -- Open file for writing
-    if not file then
-        return nil, "Error opening file: " .. err
-    end
+local function writePlaylist(filename, type, baseUrl, files, branch, filePath)
+  local file, err = io.open(filename, "w")
+  if not file then
+    return nil, "Error opening file: " .. err
+  end
 
-    -- Write the @type and @baseUrl tags
-    file:write("@type " .. type .. "\n")
-    file:write("@baseUrl " .. baseUrl .. "\n")
+  file:write("@type " .. type .. "\n")
+  file:write("@baseUrl " .. baseUrl .. "\n")
+  if type == "github" then
+    file:write("@branch " .. (branch or "") .. "\n")
+    file:write("@filepath " .. (filePath or "") .. "\n")
+  end
 
-    -- Write each file in the files table
-    for _, fileName in ipairs(files) do
-        file:write(fileName .. "\n")
-    end
+  for _, fileName in ipairs(files) do
+    file:write(fileName .. "\n")
+  end
 
-    file:close()  -- Close the file
+  file:close()
 end
 
 local function Main()
   local parsedArgs = parseArgs()
   local files = getFiles(parsedArgs.directory)
-  writePlaylist(parsedArgs.targetFile, parsedArgs.type, parsedArgs.baseUrl, files)
+  writePlaylist(parsedArgs.targetFile, parsedArgs.type, parsedArgs.baseUrl, files, parsedArgs.branch, parsedArgs.filePath)
 end
 
 Main()
