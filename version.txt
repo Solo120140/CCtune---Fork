@@ -1,7 +1,7 @@
-@version 3.1.0
+@version 3.1.1
 play.lua
 playlistGenerator.lua
 version.txt
 lib/basalt.lua
 lib/Player.lua
-lib/linkBuilders/downloader.lua
+lib/downloader.lua
