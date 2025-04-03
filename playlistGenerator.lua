@@ -1,4 +1,5 @@
-local fs = require("filesystem")-- Use the built-in filesystem API
+local io = require("io")
+--local fs = require("filesystem")-- Use the built-in filesystem API
 -- local downloader = require("downloader")
 
 
@@ -123,9 +124,10 @@ local function getFiles(directory)
   end
 
   -- Iterate through the directory
-  local dirHandle = fs.find(directory .. "/*.dfpwm") -- Use fs.find
-  for name in dirHandle do
-    table.insert(files, name)
+  for _, fileName in ipairs(fs.list(directory)) do -- Rely on global fs
+    if fileName:match("%.dfpwm$") then
+      table.insert(files, fileName)
+    end
   end
 
   return files
