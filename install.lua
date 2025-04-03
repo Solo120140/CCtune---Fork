@@ -66,7 +66,7 @@ else
   print("Installing...")
 end
 
-local files = {"play.lua", "playlistGenerator.lua", "lib/downloader.lua"} -- Add downloader.lua
+local files = {"play.lua", "playlistGenerator.lua", "lib/downloader.lua", "lib/Player.lua", "lib/basalt.lua"} -- Add downloader.lua
 
 if installed then
   print("Removing old files...")
